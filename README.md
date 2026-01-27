@@ -1,66 +1,48 @@
-# Bughunt Plugin Marketplace
+# Bughunt
 
-Psychologically-enhanced bug hunting for Claude Code using personality-primed parallel agents.
+AI agents find more bugs when they have personalities.
 
-## What's New in v2.0.0
+## Why
 
-Based on research from [AI Agent Behavioral Science](https://arxiv.org/abs/2506.06366) and [Psychologically Enhanced AI Agents](https://arxiv.org/abs/2509.04343), each hunter now has:
+Research shows personality-primed AI agents outperform neutral ones ([arXiv:2509.04343](https://arxiv.org/abs/2509.04343)). A paranoid security hunter catches exploits a generic agent misses. An obsessive edge-case hunter won't stop asking "but what if it's null?"
 
-- **Psychological Profile** — Domain-specific archetype (PARANOID, OBSESSIVE, EMPATHETIC, etc.)
-- **Cognitive Style** — How they hunt (INTUITIVE, ANALYTICAL, DETAIL, HOLISTIC)
-- **Voice** — Distinct personality in bug reports
-- **Third Pass Reflection** — Opposite-style self-check for thoroughness
-- **Confidence Scoring** — HIGH/MEDIUM/LOW on each finding
+## The Science
 
-## Installation
+- **Archetype priming** — Each hunter adopts a domain-specific mindset (PARANOID, OBSESSIVE, SKEPTICAL, etc.)
+- **Cognitive diversity** — Hunters use different thinking styles (INTUITIVE vs ANALYTICAL, DETAIL vs HOLISTIC)
+- **Self-reflection** — Third pass forces opposite-style thinking to catch blind spots
 
-```bash
+## Install
+
+```
 /plugin marketplace add wilrf/bughunt-marketplace
 /plugin install bughunt@bughunt-marketplace
 ```
 
-## Usage
+## Use
 
-```bash
+```
 /bughunt
 ```
 
-## Hunter Personalities
+## Hunters
 
-| Hunter | Archetype | Cognitive Style | Voice |
-|--------|-----------|-----------------|-------|
-| security-hunter | PARANOID | Intuitive | "This is wide open to injection" |
-| edge-case-hunter | OBSESSIVE | Detail | "Nobody checked if this is null" |
-| frontend-hunter | EMPATHETIC | Holistic | "A user would rage-quit here" |
-| backend-hunter | SKEPTICAL | Analytical | "This assumption isn't validated" |
-| type-safety-hunter | PEDANTIC | Analytical | "This `any` is hiding real issues" |
-| error-handling-hunter | PESSIMISTIC | Detail | "When this throws, no one catches it" |
-| database-hunter | SUSPICIOUS | Analytical | "This leaks user A's data to user B" |
-| auth-hunter | DISTRUSTFUL | Intuitive | "This permission check is security theater" |
-| performance-hunter | IMPATIENT | Holistic | "At 10,000 users, this will timeout" |
-| test-hunter | CYNICAL | Detail | "This test proves nothing" |
-| env-hunter | CAUTIOUS | Detail | "This works in dev. Production will differ." |
-| api-hunter | METICULOUS | Analytical | "The API promises X, delivers Y" |
-| dependency-hunter | WARY | Analytical | "This package is abandoned" |
-
-## The Iron Law
-
-Every hunter follows three passes:
-
-1. **First Pass** — Systematic checklist
-2. **Second Pass** — Uncomfortable questions
-3. **Third Pass (The Reckoning)** — Switch cognitive styles to catch what the primary style missed
+| Hunter | Personality | Style |
+|--------|-------------|-------|
+| security | PARANOID | Intuitive |
+| auth | DISTRUSTFUL | Intuitive |
+| edge-case | OBSESSIVE | Detail |
+| error-handling | PESSIMISTIC | Detail |
+| test | CYNICAL | Detail |
+| env | CAUTIOUS | Detail |
+| frontend | EMPATHETIC | Holistic |
+| performance | IMPATIENT | Holistic |
+| backend | SKEPTICAL | Analytical |
+| database | SUSPICIOUS | Analytical |
+| type-safety | PEDANTIC | Analytical |
+| api | METICULOUS | Analytical |
+| dependency | WARY | Analytical |
 
 ## Output
 
-Creates `BUGHUNT.md` with findings including:
-- Severity (CRITICAL/HIGH/MEDIUM/LOW)
-- Voiced findings in each hunter's personality
-- Evidence and fix suggestions
-- Confidence level for prioritization
-
-## Research Sources
-
-- [AI Agent Behavioral Science](https://arxiv.org/abs/2506.06366) — Fogg Model, SDT applied to AI agents
-- [Psychologically Enhanced AI Agents](https://arxiv.org/abs/2509.04343) — MBTI-in-Thoughts personality priming
-- [Gamification Psychology](https://www.gianty.com/gamification-boost-user-engagement-in-2025/) — Feedback loops, flow state
+`BUGHUNT.md` — Prioritized bugs with severity, evidence, and confidence levels.
