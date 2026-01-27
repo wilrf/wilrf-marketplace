@@ -1,48 +1,57 @@
-# Bughunt
+# Bughunt Marketplace
 
-AI agents find more bugs when they have personalities.
+AI agents find more bugs when they have personalities. And fix them better when they're calm.
 
-## Why
+## Plugins
 
-Research shows personality-primed AI agents outperform neutral ones ([arXiv:2509.04343](https://arxiv.org/abs/2509.04343)). A paranoid security hunter catches exploits a generic agent misses. An obsessive edge-case hunter won't stop asking "but what if it's null?"
+### bughunt
+Paranoid hunters find bugs others miss.
 
-## The Science
+### bugfix
+Calm fixers apply minimal, surgical repairs.
 
-- **Archetype priming** — Each hunter adopts a domain-specific mindset (PARANOID, OBSESSIVE, SKEPTICAL, etc.)
-- **Cognitive diversity** — Hunters use different thinking styles (INTUITIVE vs ANALYTICAL, DETAIL vs HOLISTIC)
-- **Self-reflection** — Third pass forces opposite-style thinking to catch blind spots
+## The Pipeline
+
+```
+/bughunt → BUGHUNT.md → /bugfix → BUGFIX.md + fixed code
+```
 
 ## Install
 
 ```
 /plugin marketplace add wilrf/bughunt-marketplace
 /plugin install bughunt@bughunt-marketplace
+/plugin install bugfix@bughunt-marketplace
 ```
 
-## Use
+## Hunters vs Fixers
 
-```
-/bughunt
-```
+| Domain | Hunter | Fixer |
+|--------|--------|-------|
+| security | PARANOID | CALM |
+| auth | DISTRUSTFUL | TRUSTING-BUT-VERIFYING |
+| edge-case | OBSESSIVE | PRAGMATIC |
+| error-handling | PESSIMISTIC | OPTIMISTIC |
+| test | CYNICAL | CONSTRUCTIVE |
+| env | CAUTIOUS | CONFIDENT |
+| frontend | EMPATHETIC | OBJECTIVE |
+| performance | IMPATIENT | PATIENT |
+| backend | SKEPTICAL | TRUSTING |
+| database | SUSPICIOUS | METHODICAL |
+| type-safety | PEDANTIC | PRACTICAL |
+| api | METICULOUS | EFFICIENT |
+| dependency | WARY | DECISIVE |
 
-## Hunters
+## Fixer Philosophy
 
-| Hunter | Personality | Style |
-|--------|-------------|-------|
-| security | PARANOID | Intuitive |
-| auth | DISTRUSTFUL | Intuitive |
-| edge-case | OBSESSIVE | Detail |
-| error-handling | PESSIMISTIC | Detail |
-| test | CYNICAL | Detail |
-| env | CAUTIOUS | Detail |
-| frontend | EMPATHETIC | Holistic |
-| performance | IMPATIENT | Holistic |
-| backend | SKEPTICAL | Analytical |
-| database | SUSPICIOUS | Analytical |
-| type-safety | PEDANTIC | Analytical |
-| api | METICULOUS | Analytical |
-| dependency | WARY | Analytical |
+1. **FIX the bug** — non-negotiable
+2. **VERIFY it works** — no false fixes
+3. **MINIMIZE footprint** — smallest change possible
+4. **DELETE tactically** — remove code when it's the right solution
+
+The best diff: `+100 -1000`
 
 ## Output
 
-`BUGHUNT.md` — Prioritized bugs with severity, evidence, and confidence levels.
+- `BUGHUNT.md` — Bugs found with severity, evidence, confidence
+- `BUGFIX.md` — Fixes applied, false positives rejected, diff stats
