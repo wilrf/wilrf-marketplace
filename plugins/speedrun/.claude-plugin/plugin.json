@@ -1,0 +1,5 @@
+{
+  "name": "speedrun",
+  "version": "1.0.0",
+  "description": "Parallel optimization agents that find performance bottlenecks, reduce bundle sizes, eliminate dead code, and verify improvements with before/after metrics."
+}

@@ -1,10 +1,10 @@
 {
-  "name": "bughunt-marketplace",
+  "name": "wilrf-marketplace",
   "owner": {
     "name": "wilrf"
   },
   "metadata": {
-    "description": "Bug hunting and fixing with psychologically-enhanced parallel agents"
+    "description": "Psychologically-enhanced parallel agents for bug hunting, fixing, and performance optimization"
   },
   "plugins": [
     {
@@ -20,6 +20,15 @@
       "name": "bugfix",
       "source": "./plugins/bugfix",
       "description": "Surgical bug fixing. Reads BUGHUNT.md and applies minimal, tactical fixes. Prefers deletion over addition.",
+      "version": "1.0.0",
+      "author": {
+        "name": "wilrf"
+      }
+    },
+    {
+      "name": "speedrun",
+      "source": "./plugins/speedrun",
+      "description": "Parallel optimization hunters that find performance bottlenecks, reduce bundle sizes, eliminate dead code, and verify improvements with before/after metrics.",
       "version": "1.0.0",
       "author": {
         "name": "wilrf"
