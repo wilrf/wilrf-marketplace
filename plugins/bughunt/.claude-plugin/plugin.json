@@ -1,0 +1,5 @@
+{
+  "name": "bughunt",
+  "version": "1.0.0",
+  "description": "Comprehensive bug hunting with parallel agents across frontend, backend, database, security, and more"
+}

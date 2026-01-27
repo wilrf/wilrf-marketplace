@@ -1,0 +1,20 @@
+{
+  "name": "bughunt-marketplace",
+  "owner": {
+    "name": "wilrf"
+  },
+  "metadata": {
+    "description": "Comprehensive bug hunting with parallel specialized agents"
+  },
+  "plugins": [
+    {
+      "name": "bughunt",
+      "source": "./plugins/bughunt",
+      "description": "Comprehensive bug hunting with parallel agents across frontend, backend, database, security, and more",
+      "version": "1.0.0",
+      "author": {
+        "name": "wilrf"
+      }
+    }
+  ]
+}
