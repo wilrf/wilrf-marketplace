@@ -4,13 +4,22 @@
     "name": "wilrf"
   },
   "metadata": {
-    "description": "Comprehensive bug hunting with parallel specialized agents"
+    "description": "Bug hunting and fixing with psychologically-enhanced parallel agents"
   },
   "plugins": [
     {
       "name": "bughunt",
       "source": "./plugins/bughunt",
-      "description": "Comprehensive bug hunting with parallel agents across frontend, backend, database, security, and more",
+      "description": "Psychologically-enhanced bug hunting with personality-primed parallel agents",
+      "version": "2.0.0",
+      "author": {
+        "name": "wilrf"
+      }
+    },
+    {
+      "name": "bugfix",
+      "source": "./plugins/bugfix",
+      "description": "Surgical bug fixing. Reads BUGHUNT.md and applies minimal, tactical fixes. Prefers deletion over addition.",
       "version": "1.0.0",
       "author": {
         "name": "wilrf"
