@@ -1,8 +1,5 @@
 {
   "name": "bugfix",
   "version": "1.0.0",
-  "description": "Surgical bug fixing with validation-first approach. Reads BUGHUNT.md and applies minimal, tactical fixes. Prefers deletion over addition.",
-  "commands": ["commands/*.md"],
-  "skills": ["skills/**/*.md"],
-  "agents": ["agents/*.md"]
+  "description": "Surgical bug fixing with validation-first approach. Reads BUGHUNT.md and applies minimal, tactical fixes. Prefers deletion over addition."
 }
