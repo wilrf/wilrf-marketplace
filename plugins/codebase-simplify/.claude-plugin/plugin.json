@@ -1,0 +1,5 @@
+{
+  "name": "codebase-simplify",
+  "version": "1.0.0",
+  "description": "Orchestrates full-codebase simplification by running /simplify on each module with auto-commits and resume support"
+}
