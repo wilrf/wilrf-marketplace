@@ -33,6 +33,15 @@
       "author": {
         "name": "wilrf"
       }
+    },
+    {
+      "name": "codebase-simplify",
+      "source": "./plugins/codebase-simplify",
+      "description": "Orchestrates full-codebase simplification by running /simplify on each module with auto-commits and resume support",
+      "version": "1.0.0",
+      "author": {
+        "name": "wilrf"
+      }
     }
   ]
 }
