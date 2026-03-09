@@ -1,172 +1,226 @@
 ---
 name: simplify-codebase
 description: >-
-  This skill should be used when the user asks to "simplify the whole codebase",
-  "simplify all files", "codebase-wide cleanup", "simplify everything",
-  "run simplify on the entire project", or "clean up the whole repo".
-  Orchestrates module-by-module /simplify sweeps with auto-commits and
-  cross-session resume.
+  Full post-refactoring codebase cleanup. Use when the user says "simplify the
+  whole codebase", "clean up after refactoring", "find and archive stale code",
+  "what files are dead", "archive unused files", "clean up the whole repo",
+  "simplify everything", "identify stale code", or "post-refactor cleanup".
+  Orchestrates three specialized agents: staleness-analyzer (classifies files as
+  fresh/stale/dead via git history and dependency graphs), code-simplifier (cleans
+  up active code), and stale-archiver (moves dead files to _archive/ with full
+  provenance). Handles resume across sessions.
 ---
 
-# Codebase-Wide Simplify
+# Codebase Simplify
 
-Orchestrate a full-codebase simplification sweep by breaking the project into
-logical modules and running `/simplify` on each one sequentially.
+Orchestrate a full post-refactoring cleanup by analyzing what's fresh, what's stale, and what's dead, then simplifying the good code and archiving the rest.
 
-## Key Behaviors
+## Three-Agent Architecture
 
-- Auto-commit after each module passes tests
-- Resume from where the last session left off
-- Revert and skip modules whose tests fail
-- Track progress in `simplify-progress.md` at the project root
+This skill delegates to three specialized agents:
 
----
+1. **staleness-analyzer** — Classifies every file as FRESH, STALE, or DEAD using git history, import/dependency graphs, and framework awareness. Produces a scored inventory with confidence ratings.
+
+2. **code-simplifier** — Operates only on FRESH files. Simplifies code for clarity and consistency while preserving functionality. Follows project standards from CLAUDE.md.
+
+3. **stale-archiver** — Moves DEAD files to `_archive/` preserving directory structure and git history. Maintains `ARCHIVE_LOG.md` with full provenance.
 
 ## Phase 1: Initialize
 
 ### Pre-Flight Checks
 
-1. Run `git status --porcelain`. If output is non-empty, abort with:
-   "Working tree has uncommitted changes. Commit or stash before running
-   simplify-codebase."
-2. Check for `simplify-progress.md` in the project root.
-   - If it exists and all modules are marked `[x]`, report completion,
-     delete the file, and stop.
-   - If it exists with pending modules, skip to **Phase 2: Execute**.
-   - If it does not exist, continue to discovery.
+1. Run `git status --porcelain`. If non-empty, abort:
 
-### Discover Modules
+   > "Working tree has uncommitted changes. Commit or stash before running."
 
-Scan for source directories to build the module list:
+2. Check for `simplify-progress.json` at the project root:
+   * If it exists with pending phases, skip to **Resume**.
+   * If it exists and all phases are complete, report completion and stop.
+   * If it doesn't exist, continue.
 
-1. If `src/` exists, list its immediate subdirectories as modules.
-2. Otherwise, scan the project root for directories containing 3+ source
-   files (`.py`, `.ts`, `.js`, `.go`, `.rs`, `.java`).
-3. Add `tests/` as the final module (simplified last, after source changes).
-4. If any module contains 20+ source files, split it into sub-batches of
-   ~10 files each, grouped by subdirectory or alphabetically.
+### Detect Project Type
+
+Identify the project's language/framework to configure the staleness-analyzer:
+
+| Signal | Type |
+|--------|------|
+| package.json + next.config.* | Next.js/React |
+| convex/ directory | Convex backend |
+| *.csproj or *.sln | .NET/C# |
+| pyproject.toml or setup.py | Python |
+| Cargo.toml | Rust |
+| go.mod | Go |
+
+Store the detected type. This determines which import patterns and framework entrypoints the staleness-analyzer checks.
 
 ### Discover Test Command
 
-Resolve the test command in priority order:
+Resolve in priority order:
 
-1. **CLAUDE.md** — look for a "Commands" or "Common Commands" section
-   containing a `pytest`, `npm test`, `cargo test`, or similar command.
-2. **pyproject.toml** — check `[tool.pytest]` or `[tool.hatch]` sections.
-3. **package.json** — check `scripts.test`.
-4. **Makefile** — check for a `test` target.
-5. If none found, warn and ask the user for the test command.
+1. CLAUDE.md — "Commands" or "Common Commands" section
+2. package.json — `scripts.test`
+3. pyproject.toml — `[tool.pytest]` or `[tool.hatch]`
+4. Makefile — `test` target
+5. If none found, ask the user.
 
 ### Write Progress File
 
-Create `simplify-progress.md` at the project root with the discovered
-module list and test command:
+Create `simplify-progress.json`:
 
-```
-# Codebase Simplify Progress
-Started: YYYY-MM-DD
-Test command: <discovered command>
-
-## Modules
-- [ ] src/data/ — pending
-- [ ] src/models/ — pending
-- [ ] src/features/ — pending
-- [ ] tests/ — pending
-
-## Findings Log
-```
-
----
-
-## Phase 2: Execute Module Loop
-
-For each module marked `pending` or `in progress` in `simplify-progress.md`:
-
-### Step 1: Mark In Progress
-
-Update the module line in the progress file from `pending` to `in progress`.
-
-### Step 2: Invoke /simplify
-
-Invoke the `/simplify` skill scoped to the current module:
-
-```
-/simplify Focus on <module-path>. Review all source files in this directory
-for code reuse, quality, and efficiency issues. Fix any issues found.
+```json
+{
+  "started": "2026-03-09",
+  "projectType": "nextjs-convex",
+  "testCommand": "npm test",
+  "stalenessWindow": 30,
+  "phases": {
+    "analyze": "pending",
+    "simplify": "pending",
+    "archive": "pending",
+    "verify": "pending"
+  },
+  "inventory": null,
+  "commits": [],
+  "errors": []
+}
 ```
 
-This delegates the three-agent review (reuse, quality, efficiency) to the
-existing `/simplify` skill.
+## Phase 2: Analyze (staleness-analyzer agent)
 
-### Step 3: Run Tests
+Invoke the **staleness-analyzer** agent scoped to the entire project.
 
-Run the test command from the progress file. Capture the exit code.
+The agent will:
 
-- **Tests pass** → continue to Step 4.
-- **Tests fail** → revert all changes with `git checkout -- .`,
-  update the progress file to mark this module as `skipped (tests failed)`,
-  log the failure in the Findings Log, and continue to the next module.
+1. Identify all files modified in the staleness window (default 30 days)
+2. Build a dependency/import graph
+3. Classify every source file as FRESH, STALE, or DEAD with confidence scores
+4. Produce a markdown inventory table
 
-### Step 4: Auto-Commit
+After the inventory is produced:
 
-Stage and commit changes for the current module:
+1. Present the inventory to the user as a summary:
 
-```bash
-git add <module-path>
-git commit -m "refactor: simplify <module-path>" \
-  -m "<summary of key changes>"
+   > "Found N fresh files, M stale files, and K dead files (confidence 60+). Here are the dead files I recommend archiving:"
+   > [table of DEAD files]
+
+2. Ask for confirmation before proceeding:
+
+   > "Should I proceed with simplifying the fresh code and archiving the dead files? You can also exclude specific files."
+
+3. Save the inventory to `simplify-progress.json`.
+4. Update phase: `"analyze": "done"`.
+
+## Phase 3: Simplify (code-simplifier agent)
+
+For each module containing FRESH files, invoke the **code-simplifier** agent.
+
+### Module Discovery
+
+Group fresh files by their top-level directory:
+
+* `src/dashboard/*.tsx` = one module
+* `src/api/*.ts` = another module
+* `convex/*.ts` = another module
+
+If any module has 20+ files, split into sub-batches of ~10.
+
+### Module Loop
+
+For each module:
+
+1. Invoke the **code-simplifier** agent scoped to that module
+2. Run the test command
+3. **Tests pass**: auto-commit with message:
+
+   ```
+   refactor: simplify <module-path>
+
+   <bullet summary of changes>
+
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+4. **Tests fail**: revert with `git checkout -- .`, log the failure, skip
+5. Update `simplify-progress.json` with commit SHA or skip reason
+
+After all modules: update phase `"simplify": "done"`.
+
+## Phase 4: Archive (stale-archiver agent)
+
+Invoke the **stale-archiver** agent with the DEAD files from the inventory.
+
+The agent will:
+
+1. Re-verify each file has no live references (final safety check)
+2. Create `_archive/` with mirrored directory structure
+3. `git mv` each dead file into the archive
+4. Clean up broken references in remaining files
+5. Append to `_archive/ARCHIVE_LOG.md`
+
+Archive in batches by directory, running tests between batches:
+
+* **Tests pass**: commit with `chore: archive stale files from <dir>`
+* **Tests fail**: restore that batch, log, skip, continue
+
+After all batches: update phase `"archive": "done"`.
+
+## Phase 5: Verify
+
+1. Run the full test suite
+2. If anything fails, report which archived file likely caused it and offer to restore: `git mv _archive/<path> <path>`
+3. Print a final summary:
+
+```markdown
+#### Codebase Simplify Complete
+
+##### Simplified (N modules)
+| Module | Changes | Commit |
+|--------|---------|--------|
+| src/dashboard | 12 fixes | abc1234 |
+
+##### Archived (K files, ~M lines removed)
+| File | Confidence | Reason |
+|------|-----------|--------|
+| src/old-widget.tsx | 92 | No imports, 120 days stale |
+
+##### Skipped (J items)
+| Item | Reason |
+|------|--------|
+| src/utils | Tests failed after simplification |
+
+##### Impact
+- Lines removed: ~M
+- Files archived: K
+- Active code simplified: N modules
+- All tests passing: Yes/No
 ```
 
-Include a `Co-Authored-By: Claude <noreply@anthropic.com>` trailer.
-
-### Step 5: Update Progress
-
-Update the module line in `simplify-progress.md`:
-
-```
-- [x] <module-path> — <N> fixes, committed <short-sha>
-```
-
-Add a section under **Findings Log** with bullet points describing
-the changes made.
-
-### Step 6: Continue
-
-Move to the next pending module. Repeat from Step 1.
-
----
-
-## Phase 3: Complete
-
-When all modules are processed:
-
-1. Print a summary table showing modules simplified (with commit SHAs),
-   modules skipped (with failure reasons), and total fixes applied.
-2. Delete `simplify-progress.md` from the project root.
-3. Run the full test suite one final time to confirm everything passes.
-
----
+4. Delete `simplify-progress.json`.
 
 ## Resume Behavior
 
-When invoked and `simplify-progress.md` already exists:
+When invoked and `simplify-progress.json` exists:
 
 1. Read the progress file.
-2. Identify the first module marked `pending` or `in progress`.
-3. If a module is marked `in progress`, check `git status`:
-   - If clean, treat as `pending` (previous session may have ended
-     before committing).
-   - If dirty, revert with `git checkout -- .` and treat as `pending`.
-4. Continue the module loop from Phase 2.
+2. Find the first phase still marked `pending` or `in-progress`.
+3. If a phase is `in-progress`, check `git status`:
+   * Clean tree: treat as pending (session ended before committing)
+   * Dirty tree: revert and treat as pending
+4. Continue from that phase. No questions asked.
 
-No questions are asked on resume — pick up and continue automatically.
+## Configuration
 
----
+Users can customize via `simplify-progress.json` or command arguments:
+
+* **stalenessWindow**: Days since last modification to consider stale (default: 30)
+* **archiveDir**: Where to put archived files (default: `_archive/`)
+* **autoArchive**: Skip confirmation for files with confidence 90+ (default: false)
+* **excludePaths**: Glob patterns to never archive (e.g., `["docs/**", "scripts/**"]`)
 
 ## Important Notes
 
-- Never modify files outside the current module being reviewed.
-- The `/simplify` skill handles all review logic — this skill only
-  orchestrates module iteration, progress tracking, and commits.
-- If context limits are approaching mid-module, commit progress so far
-  and update the progress file so the next session can resume.
+* The staleness-analyzer runs first and its inventory gates everything else. No simplification or archiving happens without the classification step.
+* The code-simplifier ONLY touches FRESH files. It never modifies stale or dead code (that would be wasted effort).
+* The stale-archiver uses `git mv` so full file history is preserved. Restoring an archived file is a single command.
+* Each phase commits independently so progress is never lost.
+* If context limits approach mid-phase, commit progress and update the progress file so the next session resumes cleanly.

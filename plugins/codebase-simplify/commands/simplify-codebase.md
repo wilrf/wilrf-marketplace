@@ -1,42 +1,45 @@
 ---
-description: "Simplify the entire codebase module-by-module with auto-commits and resume support"
+description: "Post-refactoring cleanup: analyze staleness, simplify active code, archive dead files"
+allowed-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
-# Simplify Codebase
+# /simplify-codebase
 
-Orchestrate a full-codebase simplification sweep using `/simplify` on each module.
+Full post-refactoring codebase cleanup with three phases:
 
-## Process
+1. **Analyze** — Classify files as fresh/stale/dead using git history and dependency graphs
+2. **Simplify** — Clean up active code module-by-module with auto-commits
+3. **Archive** — Move dead files to `_archive/` with provenance log
 
-1. **Pre-flight** — Verify clean working tree, check for existing progress file
-2. **Discover modules** — Scan `src/` subdirectories, add `tests/` last
-3. **Discover test command** — Read from CLAUDE.md, pyproject.toml, package.json, or Makefile
-4. **Write progress file** — Create `simplify-progress.md` with module list
-5. **Module loop** — For each pending module:
-   a. Mark in progress
-   b. Invoke `/simplify` scoped to the module
-   c. Run tests
-   d. If pass → auto-commit → update progress → next
-   e. If fail → revert → log → skip → next
-6. **Complete** — Summary table, delete progress file, final test run
+## Usage
 
-## Resume
+```
+/simplify-codebase                          # Full run, 30-day staleness window
+/simplify-codebase --window 14              # 14-day staleness window
+/simplify-codebase --analyze-only           # Just produce the inventory, don't act
+/simplify-codebase --archive-only           # Skip simplification, just archive dead files
+/simplify-codebase --exclude "docs,scripts" # Exclude directories from analysis
+```
 
-If `simplify-progress.md` exists, read it and continue from the next pending module. If a module is marked `in progress` with a clean working tree, treat as pending. If dirty, revert and retry.
+## What Happens
 
-## Auto-Commit Format
+* Uses the **staleness-analyzer** agent to build a scored inventory
+* Presents dead file candidates for your approval before archiving
+* Uses the **code-simplifier** agent on active code (tests after each module)
+* Uses the **stale-archiver** agent to move dead files with `git mv`
+* Resumes automatically if a previous session was interrupted
+* Maintains `_archive/ARCHIVE_LOG.md` so nothing is ever lost
 
+## Commit Format
+
+Simplification commits:
 ```
 refactor: simplify <module-path>
-
-<bullet summary of changes>
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-## Edge Cases
+Archive commits:
+```
+chore: archive stale files from <directory>
+```
 
-- **Dirty working tree** — Abort, ask user to commit or stash
-- **20+ files in module** — Split into ~10-file sub-batches
-- **No test command found** — Warn and ask user
-- **All modules done** — Report completion, delete progress file
+All commits include `Co-Authored-By: Claude <noreply@anthropic.com>`.

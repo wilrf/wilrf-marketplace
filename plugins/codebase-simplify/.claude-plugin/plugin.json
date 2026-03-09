@@ -1,5 +1,12 @@
 {
   "name": "codebase-simplify",
-  "version": "1.0.0",
-  "description": "Orchestrates full-codebase simplification by running /simplify on each module with auto-commits and resume support"
+  "version": "2.0.0",
+  "description": "Post-refactoring codebase cleanup: detects stale/dead code via git history and dependency analysis, simplifies active code, and archives unused files with a full paper trail.",
+  "author": {
+    "name": "Doug Fowler",
+    "email": "doug@thedanielgroup.com"
+  },
+  "repository": "https://github.com/dougfowler-nb/codebase-simplify",
+  "license": "MIT",
+  "keywords": ["cleanup", "refactoring", "dead-code", "archive", "simplify", "stale-code"]
 }
