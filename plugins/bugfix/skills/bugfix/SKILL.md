@@ -12,6 +12,19 @@ The best fix removes code.
 But the bug MUST be fixed.
 ```
 
+## Validation Confidence Rubric
+
+All fixers classify each incoming finding before touching code:
+
+| Confidence | Meaning | Action |
+|------------|---------|--------|
+| CONFIRMED | Reproduced or verified by static analysis | Fix it |
+| PLAUSIBLE | Pattern looks right but context may differ | Verify first, then fix |
+| REJECTED | False positive — not exploitable or not reachable | Document why, skip |
+
+A REJECTED finding with a clear explanation is as valuable as a fix — it prevents
+wasted work and validates that the hunter was wrong about this one.
+
 ## Fixer Principles
 
 All fixers share these principles:
@@ -25,7 +38,8 @@ All fixers share these principles:
 
 Before applying ANY fix:
 
-- [ ] Is this bug real? (reject false positives from paranoid hunters)
+- [ ] Classified as CONFIRMED, PLAUSIBLE, or REJECTED
+- [ ] For PLAUSIBLE: verified the execution path before writing code
 - [ ] What's the SMALLEST fix?
 - [ ] Can I DELETE code instead of adding?
 - [ ] Does existing code already handle this?
@@ -46,13 +60,14 @@ Each fixer reports:
 ```markdown
 ### Fix: [Bug Title from BUGHUNT.md]
 
-- **Status:** FIXED | REJECTED (false positive) | DEFERRED
+- **Status:** FIXED | REJECTED | DEFERRED
+- **Confidence:** CONFIRMED | PLAUSIBLE | REJECTED
 - **Original Severity:** CRITICAL | HIGH | MEDIUM | LOW
-- **Validation:** Why this bug is/isn't real
-- **Solution:** What was changed
-- **Approach:** Why this fix (especially if different from hunter's suggestion)
+- **Validation:** [Why this bug is/isn't real — trace the execution path or explain the false positive]
+- **Solution:** [What was changed]
+- **Approach:** [Why this fix, especially if different from hunter's suggestion]
 - **Diff:** +X -Y lines
-- **Files:** List of modified files
+- **Files:** [Modified files]
 ```
 
 ## BUGFIX.md Template
@@ -65,20 +80,32 @@ Source: BUGHUNT.md
 
 ## Summary
 - Bugs processed: N
-- Bugs fixed: N
+- Confirmed and fixed: N
 - False positives rejected: N
-- Deferred: N
+- Deferred (need human decision): N
 - Total diff: +X -Y lines
 
 ## Fixes Applied
 
-[Individual fix reports...]
+### Fix: [Bug Title]
+- **Status:** FIXED
+- **Confidence:** CONFIRMED
+- **Original Severity:** CRITICAL | HIGH | MEDIUM | LOW
+- **Validation:** [Execution path traced, confirmed real]
+- **Solution:** [What changed]
+- **Approach:** [Why this approach]
+- **Diff:** +X -Y lines
+- **Files:** [files]
 
 ## Rejected (False Positives)
 
-[Why each rejected bug wasn't real...]
+### Rejected: [Bug Title]
+- **Confidence:** REJECTED
+- **Original Severity:** [severity]
+- **Reason:** [Why this isn't real — framework handles it, input can't reach the sink, etc.]
 
 ## Deferred
 
-[Bugs that need human decision...]
+### Deferred: [Bug Title]
+- **Reason:** [Needs product decision, architectural change, or more context]
 ```
