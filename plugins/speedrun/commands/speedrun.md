@@ -9,12 +9,12 @@ Perform comprehensive optimization hunting across the codebase with mandatory me
 ## Process
 
 1. **Measure baseline** - Capture current metrics before any changes
-2. **Analyze codebase** - Identify tech stack, structure, and applicable hunters
-3. **Dispatch hunters in parallel** - Use Task tool to run multiple hunters simultaneously
-4. **Collect findings** - Aggregate all optimization opportunities with ROI scores
-5. **Write SPEEDRUN.md** - Create prioritized optimization document
-6. **Apply safe fixes** - Auto-apply low-risk optimizations
-7. **Request approval** - Ask user about risky changes
+2. **Detect stack** - Identify framework, build tooling, database, image handling
+3. **Dispatch applicable hunters in parallel** - Stack-gated (skip irrelevant hunters)
+4. **Collect findings** - Aggregate with P0-P3 priority and confidence ratings
+5. **Write SPEEDRUN.md** - Prioritized optimization document
+6. **Apply safe fixes** - Auto-apply P0/P1 low-risk optimizations
+7. **Request approval** - Ask user about complex or risky changes
 8. **Verify improvements** - Re-measure and report deltas
 
 ## Baseline Metrics to Capture
@@ -23,16 +23,16 @@ Before dispatching hunters, measure what you can:
 
 ```bash
 # Bundle size (if applicable)
-du -sh dist/ build/ .next/ out/
+du -sh dist/ build/ .next/ out/ 2>/dev/null
 
 # Package count
-cat package.json | grep -c '"'
+cat package.json | grep -c '"' 2>/dev/null
 
 # Lines of code
-find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" | xargs wc -l
+find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" | grep -v node_modules | xargs wc -l 2>/dev/null | tail -1
 
-# Build time (run build and time it)
-time npm run build
+# Build time (if build command exists)
+time npm run build 2>/dev/null
 ```
 
 ## Hunters to Dispatch
@@ -45,11 +45,24 @@ time npm run build
 - algorithm-hunter
 
 ### Dispatch if applicable:
-- build-hunter (if has build config: webpack, vite, etc.)
-- query-hunter (if has database: Supabase, Prisma, SQL files)
-- web-vitals-hunter (if has frontend: React, Vue, HTML)
-- memory-hunter (if has server runtime: Node, Python, Go)
-- image-hunter (if has images: public/, assets/, static/)
+- build-hunter (has build config: webpack.config*, vite.config*, turbo.json)
+- query-hunter (has database: Supabase, Prisma, SQL files, Mongoose)
+- web-vitals-hunter (has frontend: React, Vue, HTML files)
+- memory-hunter (has server runtime: Node.js, Python, Go)
+- image-hunter (has images in public/, assets/, or static/)
+
+## Priority System
+
+All findings are classified P0–P3 by ROI:
+
+| Priority | Impact | Effort | Action |
+|----------|--------|--------|--------|
+| P0 | >50% improvement or >100KB savings | Trivial | Fix immediately |
+| P1 | 20-50% improvement or 50-100KB savings | Straightforward | Fix this sprint |
+| P2 | 10-20% improvement or 10-50KB savings | Moderate | Plan for later |
+| P3 | <10% improvement or <10KB savings | Any | Backlog |
+
+Fix in priority order. P0 always before P1.
 
 ## Dispatch Pattern
 
@@ -61,23 +74,14 @@ Use the Task tool with `subagent_type: "general-purpose"` and include:
 
 Dispatch ALL applicable hunters in a SINGLE message for parallel execution.
 
-## ROI Scoring
-
-For each finding, calculate:
-- **Impact**: How much improvement (KB saved, ms reduced, complexity points)
-- **Effort**: How hard to fix (1=trivial, 2=moderate, 3=complex)
-- **ROI**: Impact / Effort
-
-Sort findings by ROI descending. Quick wins with big impact first.
-
 ## After Hunting
 
 Write SPEEDRUN.md with:
 - Baseline metrics captured
-- Summary table with ROI scores
-- All optimizations by ROI tier
-- Clear before/after expectations
+- Summary table by hunter and priority tier (P0/P1/P2/P3)
+- All optimizations sorted by Priority then Confidence
+- Clear before/after expectations per finding
 
 Then apply safe fixes automatically, ask about risky ones.
 
-Finally: "Verifying improvements..." and re-measure everything.
+Finally: re-measure everything and report the verified delta. Never claim an improvement without measurement.
